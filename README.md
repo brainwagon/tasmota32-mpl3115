@@ -13,3 +13,18 @@ Using the example code from the Berry Cookbook and the MPL3115 datasheet, I code
 
 To use it, upload the mpl3115p.be file to the Tasmota32 module, and then add load("mpl3115p.be") to the autoexec.be file
 on your sensor node.
+
+# Problems/limitations
+
+This was a first attempt, and so could use some cleanup.
+
+I'm uncertain about the pressure measurements.  While the numbers returned seem plausible, over the first 12 hours of running, it recorded incredibly stable pressure numbers at my location.  This device is used as an altimeter as well, so I am not sure that I got it configured properly.
+
+It's using polling, and has no support for data logging, which might be interesting to support. 
+
+
+# Additional Information
+
+Link to the datasheet:
+
+https://cdn-shop.adafruit.com/datasheets/1893_datasheet.pdf
