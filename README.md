@@ -1,5 +1,8 @@
 # tasmota32-mpl3115
+
 A (very) simple I2C driver for the MPL3115 atmospheric pressure sensor for Tasmota32
+
+![Tasmota Screen](screenshot.png)
 
 I've had a lot of fun playing around with Tasmota, using it to sense various things like temperature and particulate counts in my garage.
 I was intrigued that the version for the ESP32 included a scripting language called "Berry" that could be used to write simple,
