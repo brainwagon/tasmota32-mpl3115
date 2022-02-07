@@ -42,23 +42,27 @@ class MPL3115 : Driver
 	    tasmota.delay(10)
 
 	    # set active mode, 
-	    self.wire.write(0x60, 0x26, 0x39, 1)
-	    tasmota.delay(10)
+	    # self.wire.write(0x60, 0x26, 0x39, 1)
+	    # tasmota.delay(10)
 
-	    # read status register
-	    var sta = self.wire.read(0x60, 0x00, 1)
-
-	    # when sta & PTDR (0x8) is set, new data 
-	    # is in the pressure and temperature registers
-	    # since the sensor is in active mode, it's
-	    # not clear to me that we really need to
-	    # monitor the sensor bit. 
 	end
     end
 
     def read_pressure()
+	# okay, let's try a different approach..
+	# set the control registers
+	#   ALT (0x80) is zero, indicating a pressure measurement
+	#   OS2/OS1/OS0 sets the oversampling mode, perhaps 111? (0x38)
+	#   OST (0x2) is set to one to trigger a conversion (ONE SHOT)
+        self.wire.write(0x60, 0x26, 0x38+0x2, 1)
+	# Now, wait until the OST bit to clear, which means that 
+	# the conversion is complete.
+	while (self.wire.read(0x60, 0x26, 1) & 0x2 == 0)
+	    tasmota.delay(10)
+	end
+
 	var ph = self.wire.read(0x60, 0x01, 1)
-	var pm = self.wire.read(0x60, 0x01, 1)
+	var pm = self.wire.read(0x60, 0x02, 1)
 	var pl = self.wire.read(0x60, 0x03, 1)
 	self.pressure = (4. * (pm + 256. * ph) + pl / 64.) / 1000.
     end
@@ -79,9 +83,9 @@ class MPL3115 : Driver
 	if !self.wire return nil end
 	import string
 	var msg = string.format(
-		"{s}MPL3115 Pressure{m}%.2f kPa{e}" ..
-		"{s}MPL3115 Pressure{m}%.2f atm{e}" ..
-		"{s}MPL3115 Pressure{m}%.2f PSI{e}" ..
+		"{s}MPL3115 Pressure{m}%.3f kPa{e}" ..
+		"{s}MPL3115 Pressure{m}%.3f atm{e}" ..
+		"{s}MPL3115 Pressure{m}%.3f PSI{e}" ..
 		"{s}MPL3115 Temperature{m}%.2f °C{e}",
 		self.pressure, self.pressure * 0.00986923266, 
 		self.pressure * 0.145038, self.temperature)
@@ -93,7 +97,7 @@ class MPL3115 : Driver
 	import string
 	# internally, we do stuff in kPa, but it looks like
 	# tasmota wants everything in hPa.  So, convert on the fly.
-	var msg = string.format(",\"MPL3115\":{\"Temperature\":%.2f,\"Pressure\":%.2f}",
+	var msg = string.format(",\"MPL3115\":{\"Temperature\":%.2f,\"Pressure\":%.3f}",
 	      self.temperature, self.pressure * 10.) 
 	tasmota.response_append(msg)
     end
